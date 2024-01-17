@@ -57,7 +57,8 @@ class FolderIterator:
 
     def find_file_list(self, folder:str) -> list[str]:
         ''' Skip empty lines and read a list of file names
-            return the list
+            add field with full path
+            return as list of tuples
         '''
         while lin := self.fil.readline():
             if len(lin.strip()) > 0:
@@ -92,12 +93,13 @@ def read_dirlist(fn:str) -> pd.DataFrame:
     # loop until end
     #   find folder name
     #   find file list
-    #   format file list and folder name as table
+    #   using pandas format file list and folder name as table
     #   return pandas dataframe
     filfol = FolderIterator(fn)
-    df = pd.DataFrame(columns=('date','time','size', 'owner', 'name', 'fullname'))
+    data_columns = ('date','time','size', 'owner', 'name', 'fullname')
+    df = pd.DataFrame(columns=data_columns) # initialise empty
     for _, files in filfol:
-        dflocal = pd.DataFrame(files, columns=('date','time','size', 'owner', 'name', 'fullname'))
+        dflocal = pd.DataFrame(files, columns=data_columns)
         df = pd.concat([df,dflocal])
 
     return df
