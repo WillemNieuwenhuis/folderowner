@@ -1,6 +1,9 @@
-import pandas as pd
 import argparse
+import os
+from pathlib import Path
 import re
+
+import pandas as pd
 
 REGEX_directory_line = r'Directory of'
 REGEX_folder_pattern = r'[ \*]'
@@ -100,7 +103,34 @@ def read_dirlist(fn:str) -> pd.DataFrame:
     return df
 
 if __name__ == '__main__':
-    fn = r'E:\Projects\extract_owner\owner_rsdata.lst'
-    fnout = r'E:\Projects\extract_owner\owner_rsdata.csv'
-    df = read_dirlist(fn)
-    df.to_csv(fnout, index=False)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'dirdump',
+        help='Specify the file containing the output of the dir /qs command')
+    parser.add_argument(
+        'output_table',
+        help='Specify the output CSV table name')
+    parser.add_argument(
+        '-o', '--overwrite',
+        action='store_true',
+        help='Overwrite existing output table'
+    )
+    args = parser.parse_args()
+
+    dirdump_file = Path(args.dirdump)
+    if not dirdump_file.exists:
+        print(f'File {args.dirdump} does not exist')
+        exit()
+
+    outtable = Path(args.output_table)
+    if outtable.exists() and (not args.overwrite):
+        print(f'File {args.output_table} already exists')
+        exit()
+    
+    if outtable.exists and args.overwrite:
+        os.remove(outtable)
+
+    # fn = r'E:\Projects\extract_owner\owner_rsdata.lst'
+    # fnout = r'E:\Projects\extract_owner\owner_rsdata.csv'
+    df = read_dirlist(args.dirdump)
+    df.to_csv(args.output_table, index=False)
