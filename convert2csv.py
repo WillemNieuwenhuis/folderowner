@@ -149,7 +149,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         '-i', '--ignore_dot_folders',
         action='store_true',
-        help='Exclude . and .. folders from the list'
+        help='Exclude . and .. folders from the output table'
     )
     parser.add_argument(
         '-d', '--dirs_only',
