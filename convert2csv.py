@@ -8,6 +8,7 @@ import pandas as pd
 REGEX_directory_line = r'Directory of'
 REGEX_folder_pattern = r'[ \*]'
 REGEX_bytes_in_folder = r' bytes in '
+REGEX_dots = r'[.]{1,2}$'
 
 def extract_attribs(lin:str) -> list[str]:
     '''extract attributes at fixed starting positions in the line
@@ -28,8 +29,9 @@ class FolderIterator:
          `dir <root folder> /qs`
         This to get a list of files, each with the owner
     '''
-    def __init__(self, fn : str) -> None:
+    def __init__(self, fn : str, skip_dot_folders:bool = False) -> None:
         self.fil = open(fn, encoding='utf-8')
+        self.skip_dot_folders = skip_dot_folders
     
     def __iter__(self):
         return self
@@ -66,16 +68,21 @@ class FolderIterator:
 
         # at first line of list
         # collect lines until first summary line (fe: `297,678,077 bytes in 41 files and 2 dirs`)
-        folder_list = [add_abs_path(lin, folder)]     # add the first
+        folder_list = []
+        if not (self.skip_dot_folders and (len(re.findall(REGEX_dots, lin)) > 0)):
+            folder_list = [add_abs_path(lin, folder)]     # add the first
         while lin := self.fil.readline():
             if len(re.findall(REGEX_bytes_in_folder, lin)) > 0:
                 return folder_list
             
+            if self.skip_dot_folders and (len(re.findall(REGEX_dots, lin)) > 0):
+                continue
+
             folder_list.append(add_abs_path(lin, folder))
 
         raise StopIteration
 
-def read_dirlist(fn:str) -> pd.DataFrame:
+def read_dirlist(fn:str, ignore_dot_folders:bool) -> pd.DataFrame:
     ''' The function parses directory output from a console (Windows)
         The listing contains information about the owner of each file/folder
         A typical entry looks like:
@@ -95,7 +102,7 @@ def read_dirlist(fn:str) -> pd.DataFrame:
     #   find file list
     #   using pandas format file list and folder name as table
     #   return pandas dataframe
-    filfol = FolderIterator(fn)
+    filfol = FolderIterator(fn, skip_dot_folders=ignore_dot_folders)
     data_columns = ('date','time','size', 'owner', 'name', 'fullname')
     df = pd.DataFrame(columns=data_columns) # initialise empty
     for _, files in filfol:
@@ -117,6 +124,11 @@ if __name__ == '__main__':
         action='store_true',
         help='Overwrite existing output table'
     )
+    parser.add_argument(
+        '-i', '--ignore_dot_folders',
+        action='store_true',
+        help='Exclude . and .. folders from the list'
+    )
     args = parser.parse_args()
 
     dirdump_file = Path(args.dirdump)
@@ -129,10 +141,10 @@ if __name__ == '__main__':
         print(f'File {args.output_table} already exists')
         exit()
     
-    if outtable.exists and args.overwrite:
+    if outtable.exists() and args.overwrite:
         os.remove(outtable)
 
     # fn = r'E:\Projects\extract_owner\owner_rsdata.lst'
     # fnout = r'E:\Projects\extract_owner\owner_rsdata.csv'
-    df = read_dirlist(args.dirdump)
+    df = read_dirlist(args.dirdump, ignore_dot_folders=args.ignore_dot_folders)
     df.to_csv(args.output_table, index=False)
