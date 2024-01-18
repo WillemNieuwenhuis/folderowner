@@ -134,7 +134,12 @@ def read_dirlist(fn:str,
     return df
 
 def create_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        prog='dirtocsv',
+        description='''The function parses directory output from a terminal (Windows)
+        using the /q option.
+        The listing contains information about the owner of each file/folder'''
+    )
     parser.add_argument(
         'dirdump',
         help='Specify the file containing the output of the dir /qs command')
