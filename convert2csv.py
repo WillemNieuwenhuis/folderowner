@@ -133,7 +133,7 @@ def read_dirlist(fn:str,
 
     return df
 
-if __name__ == '__main__':
+def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'dirdump',
@@ -161,7 +161,10 @@ if __name__ == '__main__':
         action='store_true',
         help='Only extract files into the output table'
     )
-    args = parser.parse_args()
+    return parser
+
+if __name__ == '__main__':
+    args = create_parser().parse_args()
 
     dirdump_file = Path(args.dirdump)
     if not dirdump_file.exists:
