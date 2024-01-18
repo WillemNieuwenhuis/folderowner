@@ -5,10 +5,14 @@ import re
 
 import pandas as pd
 
+# For parsing
 REGEX_directory_line = r'Directory of'
 REGEX_folder_pattern = r'[ \*]'
 REGEX_bytes_in_folder = r' bytes in '
+
+# For filtering
 REGEX_dots = r'[.]{1,2}$'
+REGEX_is_folder = r'<DIR>'
 
 def extract_attribs(lin:str) -> list[str]:
     '''extract attributes at fixed starting positions in the line
@@ -29,9 +33,17 @@ class FolderIterator:
          `dir <root folder> /qs`
         This to get a list of files, each with the owner
     '''
-    def __init__(self, fn : str, skip_dot_folders:bool = False) -> None:
+    def __init__(self, fn : str,
+                 skip_dot_folders:bool = False,
+                 files_only:bool = False,
+                 folders_only:bool = False,
+                 ) -> None:
         self.fil = open(fn, encoding='utf-8')
         self.skip_dot_folders = skip_dot_folders
+        self.files_only = files_only
+        # files_only takes precedence over folders only,
+        # they cannot both be true
+        self.folders_only = folders_only and not files_only
     
     def __iter__(self):
         return self
@@ -39,6 +51,12 @@ class FolderIterator:
     def __next__(self):
         folder = self.find_folder_name()
         files = self.find_file_list(folder)
+        if self.files_only:
+            files = [f for f in files if len(re.findall(REGEX_is_folder, f[2])) == 0 ]
+        if self.folders_only:
+            files = [f for f in files if len(re.findall(REGEX_is_folder, f[2])) > 0 ]
+        if self.skip_dot_folders:
+            files = [f for f in files if len(re.findall(REGEX_dots, f[-1])) == 0 ]
         return (folder, files)
 
     def find_folder_name(self) -> str:
@@ -69,20 +87,20 @@ class FolderIterator:
         # at first line of list
         # collect lines until first summary line (fe: `297,678,077 bytes in 41 files and 2 dirs`)
         folder_list = []
-        if not (self.skip_dot_folders and (len(re.findall(REGEX_dots, lin)) > 0)):
-            folder_list = [add_abs_path(lin, folder)]     # add the first
+        folder_list = [add_abs_path(lin, folder)]     # add the first
         while lin := self.fil.readline():
             if len(re.findall(REGEX_bytes_in_folder, lin)) > 0:
                 return folder_list
             
-            if self.skip_dot_folders and (len(re.findall(REGEX_dots, lin)) > 0):
-                continue
-
             folder_list.append(add_abs_path(lin, folder))
 
         raise StopIteration
 
-def read_dirlist(fn:str, ignore_dot_folders:bool) -> pd.DataFrame:
+def read_dirlist(fn:str,
+                ignore_dot_folders:bool,
+                files_only:bool,
+                folders_only:bool,
+                ) -> pd.DataFrame:
     ''' The function parses directory output from a console (Windows)
         The listing contains information about the owner of each file/folder
         A typical entry looks like:
@@ -102,7 +120,11 @@ def read_dirlist(fn:str, ignore_dot_folders:bool) -> pd.DataFrame:
     #   find file list
     #   using pandas format file list and folder name as table
     #   return pandas dataframe
-    filfol = FolderIterator(fn, skip_dot_folders=ignore_dot_folders)
+    filfol = FolderIterator(fn,
+                            skip_dot_folders=ignore_dot_folders,
+                            files_only=files_only,
+                            folders_only=folders_only,
+                           )
     data_columns = ('date','time','size', 'owner', 'name', 'fullname')
     df = pd.DataFrame(columns=data_columns) # initialise empty
     for _, files in filfol:
@@ -129,6 +151,16 @@ if __name__ == '__main__':
         action='store_true',
         help='Exclude . and .. folders from the list'
     )
+    parser.add_argument(
+        '-d', '--dirs_only',
+        action='store_true',
+        help='Only extract folders into the output table'
+    )
+    parser.add_argument(
+        '-f', '--files_only',
+        action='store_true',
+        help='Only extract files into the output table'
+    )
     args = parser.parse_args()
 
     dirdump_file = Path(args.dirdump)
@@ -146,5 +178,9 @@ if __name__ == '__main__':
 
     # fn = r'E:\Projects\extract_owner\owner_rsdata.lst'
     # fnout = r'E:\Projects\extract_owner\owner_rsdata.csv'
-    df = read_dirlist(args.dirdump, ignore_dot_folders=args.ignore_dot_folders)
+    df = read_dirlist(args.dirdump,
+                    ignore_dot_folders=args.ignore_dot_folders,
+                    files_only = args.files_only,
+                    folders_only = args.dirs_only,
+                    )
     df.to_csv(args.output_table, index=False)
