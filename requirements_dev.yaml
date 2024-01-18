@@ -1,0 +1,6 @@
+name: pandas_dev
+channels:
+  - defaults
+dependencies:
+  - pytest
+  - mock

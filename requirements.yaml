@@ -1,0 +1,8 @@
+
+name: pandas
+channels:
+  - defaults
+dependencies:
+  - python
+  - pandas
+  - pip
