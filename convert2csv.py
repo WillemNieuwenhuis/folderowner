@@ -39,10 +39,10 @@ class FolderIterator:
                  folders_only:bool = False,
                  ) -> None:
         self.fil = open(fn, encoding='utf-8')
-        self.skip_dot_folders = skip_dot_folders
         self.files_only = files_only
-        # files_only takes precedence over folders only,
-        # they cannot both be true
+        # files_only takes precedence over folders_only or skip_dot_folders,
+        # they cannot all be true
+        self.skip_dot_folders = skip_dot_folders and not files_only
         self.folders_only = folders_only and not files_only
     
     def __iter__(self):
