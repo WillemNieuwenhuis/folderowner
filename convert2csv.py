@@ -183,12 +183,13 @@ def create_parser() -> argparse.ArgumentParser:
         action='store_true',
         help='Exclude . and .. folders from the output table'
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         '-d', '--dirs_only',
         action='store_true',
         help='Only extract folders into the output table'
     )
-    parser.add_argument(
+    group.add_argument(
         '-f', '--files_only',
         action='store_true',
         help='Only extract files into the output table'
