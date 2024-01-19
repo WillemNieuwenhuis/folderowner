@@ -76,7 +76,7 @@ class FolderIterator:
         if len(parts) < 3:
             raise StopIteration
 
-        return ''.join(parts[3:-1])
+        return ' '.join(parts[3:-1])
 
     def find_file_list(self, folder: str) -> list[str]:
         ''' Skip empty lines and read a list of file names
