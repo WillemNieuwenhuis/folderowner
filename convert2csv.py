@@ -2,6 +2,7 @@ import argparse
 import os
 from pathlib import Path
 import re
+import typing
 
 import pandas as pd
 
@@ -38,8 +39,9 @@ class FolderIterator:
                  skip_dot_folders: bool = False,
                  files_only: bool = False,
                  folders_only: bool = False,
+                 encoding: typing.Optional[str] = 'utf-8',
                  ) -> None:
-        self.fil = open(fn)
+        self.fil = open(fn, encoding=encoding)
         self.files_only = files_only
         # files_only takes precedence over folders_only or skip_dot_folders,
         # they cannot all be true
@@ -112,6 +114,7 @@ def read_dirlist(fn: str,
                  ignore_dot_folders: bool,
                  files_only: bool,
                  folders_only: bool,
+                 encoding: typing.Optional[str],
                  ) -> pd.DataFrame:
     ''' The function parses directory output from a console (Windows)
         The listing contains information about the owner of each file/folder
@@ -136,6 +139,7 @@ def read_dirlist(fn: str,
                             skip_dot_folders=ignore_dot_folders,
                             files_only=files_only,
                             folders_only=folders_only,
+                            encoding=encoding,
                             )
     data_columns = ('date', 'time', 'size', 'owner', 'name', 'folder')
     df = pd.DataFrame(columns=data_columns)  # initialise empty
@@ -180,6 +184,11 @@ def create_parser() -> argparse.ArgumentParser:
         action='store_true',
         help='Only extract files into the output table'
     )
+    parser.add_argument(
+        '-e', '--encoding',
+        default='utf-8',
+        help='Specify the text encoding'
+    )
     return parser
 
 
@@ -203,5 +212,6 @@ if __name__ == '__main__':
                       ignore_dot_folders=args.ignore_dot_folders,
                       files_only=args.files_only,
                       folders_only=args.dirs_only,
+                      encoding=args.encoding,
                       )
     df.to_csv(args.output_table, index=False, encoding='utf-8')
