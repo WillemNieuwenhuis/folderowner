@@ -21,14 +21,11 @@ def extract_attribs(lin: str) -> list[str]:
     datestr = lin[0:12].strip()
     timestr = lin[12:17].strip()
     sizestr = lin[17:35].strip().replace(',', '')
-    owner = lin[35:50].strip()
-    name = lin[50:].strip()
+    own_name = lin[35:]
+    parts = own_name.split()
+    owner = parts[0].strip()
+    name = ' '.join(parts[1:])
     return (datestr, timestr, sizestr, owner, name)
-
-
-def add_abs_path(lin: str, folder: str) -> tuple[str]:
-    rel_path = extract_attribs(lin)
-    return (*rel_path, folder + rel_path[-1])
 
 
 class FolderIterator:
@@ -42,7 +39,7 @@ class FolderIterator:
                  files_only: bool = False,
                  folders_only: bool = False,
                  ) -> None:
-        self.fil = open(fn, encoding='utf-8')
+        self.fil = open(fn)
         self.files_only = files_only
         # files_only takes precedence over folders_only or skip_dot_folders,
         # they cannot all be true
@@ -60,7 +57,7 @@ class FolderIterator:
         if self.folders_only:
             files = [f for f in files if len(re.findall(REGEX_is_folder, f[2])) > 0]
         if self.skip_dot_folders:
-            files = [f for f in files if len(re.findall(REGEX_dots, f[-1])) == 0]
+            files = [f for f in files if len(re.findall(REGEX_dots, f[-2])) == 0]
         return (folder, files)
 
     def find_folder_name(self) -> str:
@@ -77,7 +74,7 @@ class FolderIterator:
         if len(parts) < 3:
             raise StopIteration
 
-        return parts[3]
+        return ''.join(parts[3:-1])
 
     def find_file_list(self, folder: str) -> list[str]:
         ''' Skip empty lines and read a list of file names
@@ -91,15 +88,24 @@ class FolderIterator:
         # at first line of list
         # collect lines until first summary line
         # (fe: `297,678,077 bytes in 41 files and 2 dirs`)
-        folder_list = []
-        folder_list = [add_abs_path(lin, folder)]     # add the first
+        folder_list = [(*extract_attribs(lin), folder)]     # add the first
         while lin := self.fil.readline():
             if len(re.findall(REGEX_bytes_in_folder, lin)) > 0:
                 return folder_list
 
-            folder_list.append(add_abs_path(lin, folder))
+            folder_list.append((*extract_attribs(lin), folder))
 
         raise StopIteration
+
+
+def split_dir_from_size(df: pd.DataFrame) -> pd.DataFrame:
+    ser = df['size']
+    df['isfolder'] = ser.str.contains('<DIR>')
+    df['size (bytes)'] = pd.to_numeric(ser, 'coerce').fillna(0)
+    df = df.drop(columns=['size'])
+    cols = df.columns
+    ncols = [*cols[:2], *cols[-2:], *cols[2:-2]]
+    return df.reindex(columns=ncols)
 
 
 def read_dirlist(fn: str,
@@ -131,12 +137,13 @@ def read_dirlist(fn: str,
                             files_only=files_only,
                             folders_only=folders_only,
                             )
-    data_columns = ('date', 'time', 'size', 'owner', 'name', 'fullname')
+    data_columns = ('date', 'time', 'size', 'owner', 'name', 'folder')
     df = pd.DataFrame(columns=data_columns)  # initialise empty
     for _, files in filfol:
         dflocal = pd.DataFrame(files, columns=data_columns)
         df = pd.concat([df, dflocal])
 
+    df = split_dir_from_size(df)
     return df
 
 
@@ -197,4 +204,4 @@ if __name__ == '__main__':
                       files_only=args.files_only,
                       folders_only=args.dirs_only,
                       )
-    df.to_csv(args.output_table, index=False)
+    df.to_csv(args.output_table, index=False, encoding='utf-8')
