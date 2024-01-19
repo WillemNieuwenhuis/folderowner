@@ -48,6 +48,9 @@ class FolderIterator:
         self.skip_dot_folders = skip_dot_folders and not files_only
         self.folders_only = folders_only and not files_only
 
+    def __del__(self):
+        self.fil.close()
+
     def __iter__(self):
         return self
 
