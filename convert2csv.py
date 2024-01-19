@@ -101,6 +101,12 @@ class FolderIterator:
 
 
 def split_dir_from_size(df: pd.DataFrame) -> pd.DataFrame:
+    '''
+        The size columns can contain both numbers to indicate the size of a
+        file, or it contains the text`<DIR>` to indicate the item is a folder.
+        Two new columns are generated:
+          - one to indicate if an item is a folder
+    '''
     ser = df['size']
     df['isfolder'] = ser.str.contains('<DIR>')
     df['size (bytes)'] = pd.to_numeric(ser, 'coerce').fillna(0)
@@ -187,7 +193,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         '-e', '--encoding',
         default='utf-8',
-        help='Specify the text encoding'
+        help='Specify the text encoding of the input file'
     )
     return parser
 
