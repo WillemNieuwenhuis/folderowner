@@ -1,5 +1,5 @@
 # Extract owner info from plain folder listing
-The is for windows only. They expected input is the output
+This works for windows only. They expected input is the output
 of one of the commands:
 
 ```shell
@@ -14,6 +14,10 @@ Or for a recursive listing
 
 It is assumed that the output of the command is captured in a file. This files can 
 then be passed to the application.
+
+> [!Note]
+> Retrieving the owner information is a slow operation and for folders with a large number of files this can take considerable time.
+
 
 ## Syntax
 
