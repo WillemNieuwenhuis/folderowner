@@ -15,8 +15,26 @@ REGEX_bytes_in_folder = r' bytes in '
 REGEX_dots = r'[.]{1,2}$'
 REGEX_is_folder = r'<DIR>'
 
+# possible system domains
+NTAUTH_DOMAIN = 'NT AUTHORITY'
+BUILTIN_DOMAIN = 'BUILTIN'
+NTSERV_DOMAIN = 'NT SERVICE'
+LOCAL_DOMAIN = os.environ.get('userdomain')
+SPECIAL_DOMAIN = '...'
+all_domains = [NTAUTH_DOMAIN, BUILTIN_DOMAIN,
+               NTSERV_DOMAIN, LOCAL_DOMAIN, SPECIAL_DOMAIN]
 
-def extract_attribs(lin: str) -> list[str]:
+
+class MissingOwner(Exception):
+    pass
+
+
+def has_valid_domain(name: str):
+    checked = [name.find(dom) >= 0 for dom in all_domains]
+    return any(checked)
+
+
+def extract_attribs(lin: str) -> tuple[str]:
     '''extract attributes at fixed starting positions in the line
     '''
     datestr = lin[0:12].strip()
@@ -26,6 +44,8 @@ def extract_attribs(lin: str) -> list[str]:
     parts = own_name.split()
     owner = parts[0].strip()
     name = ' '.join(parts[1:])
+    if not has_valid_domain(owner):
+        raise MissingOwner('Could not find valid owner, did you use "/Q"')
     return (datestr, timestr, sizestr, owner, name)
 
 
@@ -58,11 +78,14 @@ class FolderIterator:
         folder = self.find_folder_name()
         files = self.find_file_list(folder)
         if self.files_only:
-            files = [f for f in files if len(re.findall(REGEX_is_folder, f[2])) == 0]
+            files = [f for f in files if len(
+                re.findall(REGEX_is_folder, f[2])) == 0]
         if self.folders_only:
-            files = [f for f in files if len(re.findall(REGEX_is_folder, f[2])) > 0]
+            files = [f for f in files if len(
+                re.findall(REGEX_is_folder, f[2])) > 0]
         if self.skip_dot_folders:
-            files = [f for f in files if len(re.findall(REGEX_dots, f[-2])) == 0]
+            files = [f for f in files if len(
+                re.findall(REGEX_dots, f[-2])) == 0]
         return (folder, files)
 
     def find_folder_name(self) -> str:
