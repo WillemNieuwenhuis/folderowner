@@ -1,5 +1,6 @@
 import pytest
-from convert2csv import extract_attribs, extract_attribs_cmd, MissingOwner
+import mock
+from convert2csv import extract_attribs, extract_attribs_cmd, MissingOwner, ExtractFunction
 import os
 
 login_user = '\\'.join(
@@ -65,3 +66,11 @@ def test_extract_attribs_file_with_spaces_size_number():
 def test_extract_no_owner():
     with pytest.raises(MissingOwner):
         all = extract_attribs(ENTRY_NO_OWNER)
+
+
+# dynamic TCC or CMD
+@mock.patch('convert2csv.extract_attribs')
+def test_dynamic_extract(funmock):
+    fun: ExtractFunction = funmock
+    tup = fun(NAME_WITH_SPACES)
+    assert funmock.called

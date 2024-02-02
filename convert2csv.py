@@ -2,7 +2,7 @@ import argparse
 import os
 from pathlib import Path
 import re
-import typing
+from typing import Optional, Callable
 
 import pandas as pd
 
@@ -35,6 +35,9 @@ def get_valid_domain_from(name: str) -> str | None:
         return checked[0]
 
     return None
+
+
+ExtractFunction = Callable[[str], tuple[str]]
 
 
 def extract_attribs_cmd(lin: str) -> tuple[str]:
@@ -86,7 +89,7 @@ class FolderIterator:
                  skip_dot_folders: bool = False,
                  files_only: bool = False,
                  folders_only: bool = False,
-                 encoding: typing.Optional[str] = 'utf-8',
+                 encoding: Optional[str] = 'utf-8',
                  ) -> None:
         self.fil = open(fn, encoding=encoding)
         self.files_only = files_only
@@ -173,7 +176,7 @@ def read_dirlist(fn: str,
                  ignore_dot_folders: bool,
                  files_only: bool,
                  folders_only: bool,
-                 encoding: typing.Optional[str],
+                 encoding: Optional[str],
                  ) -> pd.DataFrame:
     ''' The function parses directory output from a console (Windows)
         The listing contains information about the owner of each file/folder
