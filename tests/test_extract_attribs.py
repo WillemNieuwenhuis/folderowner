@@ -1,15 +1,37 @@
 import pytest
-from convert2csv import extract_attribs, MissingOwner
+from convert2csv import extract_attribs, extract_attribs_cmd, MissingOwner
 import os
 
 login_user = '\\'.join(
     [os.environ.get('userdomain'), os.environ.get('username')])
 
-NAME_NO_SPACE = '21-01-2023  17:04         <DIR>    SPEEDY\Wim  ExtrasCprorgramming'
-NAME_WITH_SPACES = r'06-03-2015  16:53      28,847,799  SPEEDY\Wim  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'
+# CMD strings
+NAME_NO_SPACE_CMD = f'2024-01-19  16:48        52,651,341 {login_user}         owner_rsdata.lst'
+NAME_OVERLAP_CMD = r'2022-05-07  06:20            12,288 NT SERVICE\TrustedInstawinhlp32.exe'
+
+# TCC strings
+NAME_NO_SPACE = f'21-01-2023  17:04         <DIR>    {login_user}  ExtrasCprorgramming'
+NAME_WITH_SPACES = rf'06-03-2015  16:53      28,847,799  {login_user}  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'
 ENTRY_NO_OWNER = r'06-03-2015  16:53      28,847,799  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'
 
 
+# CMD
+def test_cmd_extract_attribs_owner_ok():
+    *_, owner, _ = extract_attribs_cmd(NAME_NO_SPACE_CMD)
+    assert owner == login_user
+
+
+def test_cmd_extract_attribs_overlap_owner():
+    *_, owner, _ = extract_attribs_cmd(NAME_OVERLAP_CMD)
+    assert 'NT SERVICE\TrustedInsta' == owner
+
+
+def test_cmd_extract_attribs_overlap_name():
+    *_, filename = extract_attribs_cmd(NAME_OVERLAP_CMD)
+    assert 'winhlp32.exe' == filename
+
+
+# TCC
 def test_extract_attribs_owner_ok():
     *_, owner, _ = extract_attribs(NAME_NO_SPACE)
     assert owner == login_user
