@@ -6,15 +6,19 @@
     "configurations": [
         {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
+            "args": [
+                "out.lst",
+                "out.csv"
+            ],
             "justMyCode": true
         },
         {
             "name": "PyTest",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "stopOnEntry": false,
             "purpose": [
@@ -23,6 +27,5 @@
             "module": "pytest",
             "cwd": "${workspaceRoot}",
         }
-
     ]
 }
