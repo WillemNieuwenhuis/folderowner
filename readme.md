@@ -12,6 +12,9 @@ Or for a recursive listing
     dir /qs <folder>
 ```
 
+> [!Note]
+> Depending on the shell being used the formatting of the list can differ. TCC and CMD are now supported
+
 It is assumed that the output of the command is captured in a file. This files can 
 then be passed to the application.
 
