@@ -7,7 +7,7 @@ login_user = '\\'.join(
     [os.environ.get('userdomain'), os.environ.get('username')])
 
 # CMD strings
-NAME_NO_SPACE_CMD = f'2024-01-19  16:48        52,651,341 {login_user}         owner_rsdata.lst'
+NAME_NO_SPACE_CMD = f'2024-01-19  16:48        52,651,341 {login_user:23}         owner_rsdata.lst'
 NAME_OVERLAP_CMD = r'2022-05-07  06:20            12,288 NT SERVICE\TrustedInstawinhlp32.exe'
 
 # TCC strings
