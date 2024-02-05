@@ -1,6 +1,6 @@
 import pytest
 import mock
-from convert2csv import extract_attribs, extract_attribs_cmd, MissingOwner, ExtractFunction
+from convert2csv import extract_attribs, extract_attribs_cmd, MissingOwner, ExtractFunction, FolderIterator
 import os
 
 login_user = '\\'.join(
@@ -69,8 +69,17 @@ def test_extract_no_owner():
 
 
 # dynamic TCC or CMD
+@pytest.fixture
+def file_list():
+    with open('out.lst') as fil:
+        lst = [l.strip() for l in fil.readlines()]
+
+    return lst
+
+
 @mock.patch('convert2csv.extract_attribs')
-def test_dynamic_extract(funmock):
+def test_dynamic_extract(funmock, file_list):
     fun: ExtractFunction = funmock
-    tup = fun(NAME_WITH_SPACES)
+    fi = FolderIterator(iter(file_list))
+    files = next(fi)
     assert funmock.called

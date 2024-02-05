@@ -2,7 +2,7 @@ import argparse
 import os
 from pathlib import Path
 import re
-from typing import Optional, Callable
+from typing import Optional, Callable, Iterable
 
 import pandas as pd
 
@@ -27,6 +27,29 @@ all_domains = [NTAUTH_DOMAIN, BUILTIN_DOMAIN,
 
 class MissingOwner(Exception):
     pass
+
+
+class FileIterator(Iterable):
+    ''' Turn file read generator into an iterator
+        This allows to handle the special end of file case (empty line)
+        A regular empty line contains a single '\n', which is stripped off
+    '''
+
+    def __init__(self, filename: str) -> None:
+        self.fil = open(filename)
+
+    def __next__(self) -> str:
+        line = self.fil.readline()
+        if line:
+            return line.strip()
+
+        raise StopIteration
+
+    def __iter__(self):
+        return self
+
+    def __del__(self) -> None:
+        self.fil.close()
 
 
 def get_valid_domain_from(name: str) -> str | None:
@@ -85,21 +108,19 @@ class FolderIterator:
         This to get a list of files, each with the owner
     '''
 
-    def __init__(self, fn: str,
+    def __init__(self,
+                 source: Iterable,
                  skip_dot_folders: bool = False,
                  files_only: bool = False,
                  folders_only: bool = False,
                  encoding: Optional[str] = 'utf-8',
                  ) -> None:
-        self.fil = open(fn, encoding=encoding)
+        self.source = source
         self.files_only = files_only
         # files_only takes precedence over folders_only or skip_dot_folders,
         # they cannot all be true
         self.skip_dot_folders = skip_dot_folders and not files_only
         self.folders_only = folders_only and not files_only
-
-    def __del__(self):
-        self.fil.close()
 
     def __iter__(self):
         return self
@@ -122,8 +143,9 @@ class FolderIterator:
         ''' Read lines from the file until a line with folder name is found
             extract and return the folder name
         '''
-        while lin := self.fil.readline():
-            if len(re.findall(REGEX_directory_line, lin.strip())) > 0:
+        while True:
+            lin = next(self.source)
+            if len(re.findall(REGEX_directory_line, lin)) > 0:
                 break
 
         # lin looks like:
@@ -139,15 +161,17 @@ class FolderIterator:
             add field with full path
             return as list of tuples
         '''
-        while lin := self.fil.readline():
-            if len(lin.strip()) > 0:
+        while True:
+            lin = next(self.source)
+            if len(lin) > 0:
                 break
 
         # at first line of list
         # collect lines until first summary line
         # (fe: `297,678,077 bytes in 41 files and 2 dirs`)
         folder_list = [(*extract_attribs(lin), folder)]     # add the first
-        while lin := self.fil.readline():
+        while True:
+            lin = next(self.source)
             if len(re.findall(REGEX_bytes_in_folder, lin)) > 0:
                 return folder_list
 
@@ -197,7 +221,8 @@ def read_dirlist(fn: str,
     #   find file list
     #   using pandas format file list and folder name as table
     #   return pandas dataframe
-    filfol = FolderIterator(fn,
+    source = FileIterator(fn)
+    filfol = FolderIterator(source,
                             skip_dot_folders=ignore_dot_folders,
                             files_only=files_only,
                             folders_only=folders_only,
