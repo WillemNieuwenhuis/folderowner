@@ -71,7 +71,7 @@ def test_extract_no_owner():
 # dynamic TCC or CMD
 @pytest.fixture
 def file_list():
-    with open('out.lst') as fil:
+    with open('tests/test_file_list.lst') as fil:
         lst = [l.strip() for l in fil.readlines()]
 
     return lst
@@ -79,7 +79,6 @@ def file_list():
 
 @mock.patch('convert2csv.extract_attribs')
 def test_dynamic_extract(funmock, file_list):
-    fun: ExtractFunction = funmock
     fi = FolderIterator(iter(file_list))
-    files = next(fi)
+    files = next(fi)    # initiates calls to extract_attribs
     assert funmock.called

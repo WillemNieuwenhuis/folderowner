@@ -1,0 +1,16 @@
+
+ Volume in drive C is unlabeled    Serial number is be92:c251
+ Directory of  C:\*
+
+2023-11-01  10:59         <DIR>    AD\nieuwenhuis               Data
+2024-01-08  10:31         <DIR>    BUILTIN\Administrators       NewFollowMe
+2022-05-07   6:24         <DIR>    NT AUTHORITY\SYSTEM          PerfLogs
+2024-01-25  13:51         <DIR>    NT SERVICE\TrustedInstaller  Program Files
+2024-01-08  17:06         <DIR>    NT SERVICE\TrustedInstaller  Program Files (x86)
+2023-10-30  14:32         <DIR>    NT AUTHORITY\SYSTEM          Users
+2024-01-11  10:05         <DIR>    NT SERVICE\TrustedInstaller  Windows
+2023-09-30   6:47         112,240  NT AUTHORITY\SYSTEM          appverifUI.dll
+2023-12-15   9:50          12,288  ...                          DumpStack.log
+2023-09-30   6:46          66,216  NT AUTHORITY\SYSTEM          vfcompat.dll
+             190,744 bytes in 3 files and 7 dirs    196,608 bytes allocated
+     722,285,363,200 bytes free
