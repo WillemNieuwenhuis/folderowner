@@ -7,7 +7,8 @@ from typing import Optional, Callable, Iterable
 import pandas as pd
 
 # For parsing
-REGEX_VOLUME_SERIAL = 'Volume Serial'
+REGEX_VOLUME_SERIAL_CMD = 'Volume Serial'
+REGEX_VOLUME_SERIAL_TCC = ' Serial number'
 REGEX_directory_line = 'Directory of'
 REGEX_folder_pattern = r'[ \*]'
 REGEX_bytes_in_folder = ' bytes in '
@@ -105,6 +106,10 @@ def extract_attribs(lin: str) -> tuple[str]:
     return (datestr, timestr, sizestr, owner, filename)
 
 
+extract_functions: dict[str, ExtractFunction] = {
+    'TCC': extract_attribs, 'CMD': extract_attribs_cmd}
+
+
 class FolderIterator:
     ''' Extract all listed files from a dump of the command:
          `dir <root folder> /qs`
@@ -126,6 +131,7 @@ class FolderIterator:
         # they cannot all be true
         self.skip_dot_folders = skip_dot_folders and not files_only
         self.folders_only = folders_only and not files_only
+        self.extractfunction = extract_functions[self._detect_shell()]
 
     def __iter__(self):
         return self
@@ -144,7 +150,7 @@ class FolderIterator:
                 re.findall(REGEX_dots, f[-2])) == 0]
         return (folder, files)
 
-    def detect_shell(self) -> str:
+    def _detect_shell(self) -> str:
         ''' Try to detect the shell the dir list is from
             to detect which has created the list by testing the first lines.
             For TCC the list should start with something similar to:
@@ -156,16 +162,10 @@ class FolderIterator:
         # skip potential empty lines
         while True:
             lin = next(self.source)
-            if len(re.findall(REGEX_VOLUME_SERIAL, lin)) > 0:
+            if len(re.findall(REGEX_VOLUME_SERIAL_CMD, lin)) > 0:
                 return 'CMD'
-            if len(lin) == 0:
-                break
-
-        # examine section for shell type
-        while True:
-            lin = next(self.source)
-            if len(lin) == 0:
-                break
+            if len(re.findall(REGEX_VOLUME_SERIAL_TCC, lin)) > 0:
+                return 'TCC'
 
         return 'TCC'
 
@@ -199,13 +199,13 @@ class FolderIterator:
         # at first line of list
         # collect lines until first summary line
         # (fe: `297,678,077 bytes in 41 files and 2 dirs`)
-        folder_list = [(*extract_attribs(lin), folder)]     # add the first
+        folder_list = [(*self.extractfunction(lin), folder)]     # add the first
         while True:
             lin = next(self.source)
             if len(re.findall(REGEX_bytes_in_folder, lin)) > 0:
                 return folder_list
 
-            folder_list.append((*extract_attribs(lin), folder))
+            folder_list.append((*self.extractfunction(lin), folder))
 
         raise StopIteration
 

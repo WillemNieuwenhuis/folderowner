@@ -98,11 +98,9 @@ def test_dynamic_extract(funmock, file_list: list[str]):
 
 def test_shell_type_tcc(file_list: list[str]):
     fi = FolderIterator(iter(file_list))
-    shell = fi.detect_shell()
-    assert shell == 'TCC'
+    assert fi.extractfunction == extract_attribs
 
 
 def test_shell_type_cmd(file_list_cmd: list[str]):
     fi = FolderIterator(iter(file_list_cmd))
-    shell = fi.detect_shell()
-    assert shell == 'CMD'
+    assert fi.extractfunction == extract_attribs_cmd
