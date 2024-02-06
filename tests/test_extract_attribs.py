@@ -1,7 +1,8 @@
 import pytest
 import mock
-from convert2csv import extract_attribs, extract_attribs_cmd, MissingOwner, ExtractFunction, FolderIterator
 import os
+from pathlib import Path
+from convert2csv import extract_attribs, extract_attribs_cmd, MissingOwner, ExtractFunction, FolderIterator
 
 login_user = '\\'.join(
     [os.environ.get('userdomain'), os.environ.get('username')])
@@ -14,6 +15,8 @@ NAME_OVERLAP_CMD = r'2022-05-07  06:20            12,288 NT SERVICE\TrustedInsta
 NAME_NO_SPACE = f'21-01-2023  17:04         <DIR>    {login_user}  ExtrasCprorgramming'
 NAME_WITH_SPACES = rf'06-03-2015  16:53      28,847,799  {login_user}  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'
 ENTRY_NO_OWNER = r'06-03-2015  16:53      28,847,799  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'
+
+TEST_DIR = Path(__file__).parent
 
 
 # CMD
@@ -71,7 +74,7 @@ def test_extract_no_owner():
 # dynamic TCC or CMD
 @pytest.fixture
 def file_list():
-    with open('tests/test_file_list.lst') as fil:
+    with open(TEST_DIR / 'test_file_list_tcc.lst') as fil:
         lst = [l.strip() for l in fil.readlines()]
 
     return lst
