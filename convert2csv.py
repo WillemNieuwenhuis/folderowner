@@ -7,9 +7,10 @@ from typing import Optional, Callable, Iterable
 import pandas as pd
 
 # For parsing
-REGEX_directory_line = r'Directory of'
+REGEX_VOLUME_SERIAL = 'Volume Serial'
+REGEX_directory_line = 'Directory of'
 REGEX_folder_pattern = r'[ \*]'
-REGEX_bytes_in_folder = r' bytes in '
+REGEX_bytes_in_folder = ' bytes in '
 
 # For filtering
 REGEX_dots = r'[.]{1,2}$'
@@ -106,6 +107,8 @@ class FolderIterator:
     ''' Extract all listed files from a dump of the command:
          `dir <root folder> /qs`
         This to get a list of files, each with the owner
+        Two shells can be used to generate the lists: CMD and TCC.
+        The list of CMD is formatted different from TCC. The iterator tries
     '''
 
     def __init__(self,
@@ -138,6 +141,31 @@ class FolderIterator:
             files = [f for f in files if len(
                 re.findall(REGEX_dots, f[-2])) == 0]
         return (folder, files)
+
+    def detect_shell(self) -> str:
+        ''' Try to detect the shell the dir list is from
+            to detect which has created the list by testing the first lines.
+            For TCC the list should start with something similar to:
+              `Volume in drive C is unlabeled    Serial number is be92:c251`
+            For CMD the list should start with something similar to:
+              `Volume in drive C has no label.\n`
+              `Volume Serial Number is BE92-C251`
+        '''
+        # skip potential empty lines
+        while True:
+            lin = next(self.source)
+            if len(re.findall(REGEX_VOLUME_SERIAL, lin)) > 0:
+                return 'CMD'
+            if len(lin) == 0:
+                break
+
+        # examine section for shell type
+        while True:
+            lin = next(self.source)
+            if len(lin) == 0:
+                break
+
+        return 'TCC'
 
     def find_folder_name(self) -> str:
         ''' Read lines from the file until a line with folder name is found

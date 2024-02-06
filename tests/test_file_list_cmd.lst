@@ -1,0 +1,16 @@
+ Volume in drive C has no label.
+ Volume Serial Number is BE92-C251
+
+ Directory of C:\
+
+2023-09-30  06:47           112,240 NT AUTHORITY\SYSTEM    appverifUI.dll
+2023-11-01  10:59    <DIR>          AD\nieuwenhuis         Data
+2024-01-08  10:31    <DIR>          BUILTIN\Administrators NewFollowMe
+2022-05-07  06:24    <DIR>          NT AUTHORITY\SYSTEM    PerfLogs
+2024-01-25  13:51    <DIR>          NT SERVICE\TrustedInstaProgram Files
+2024-01-08  17:06    <DIR>          NT SERVICE\TrustedInstaProgram Files (x86)
+2023-10-30  14:32    <DIR>          NT AUTHORITY\SYSTEM    Users
+2023-09-30  06:46            66,216 NT AUTHORITY\SYSTEM    vfcompat.dll
+2024-01-11  10:05    <DIR>          NT SERVICE\TrustedInstaWindows
+               2 File(s)        178,456 bytes
+               7 Dir(s)  718,021,451,776 bytes free

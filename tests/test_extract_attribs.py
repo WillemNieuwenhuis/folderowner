@@ -80,8 +80,28 @@ def file_list():
     return lst
 
 
+@pytest.fixture
+def file_list_cmd():
+    with open(TEST_DIR / 'test_file_list_cmd.lst') as fil:
+        lst = [l.strip() for l in fil.readlines()]
+
+    return lst
+
+
 @mock.patch('convert2csv.extract_attribs')
 def test_dynamic_extract(funmock, file_list):
     fi = FolderIterator(iter(file_list))
     files = next(fi)    # initiates calls to extract_attribs
     assert funmock.called
+
+
+def test_shell_type_tcc(file_list):
+    fi = FolderIterator(iter(file_list))
+    shell = fi.detect_shell()
+    assert shell == 'TCC'
+
+
+def test_shell_type_cmd(file_list_cmd):
+    fi = FolderIterator(iter(file_list_cmd))
+    shell = fi.detect_shell()
+    assert shell == 'CMD'
