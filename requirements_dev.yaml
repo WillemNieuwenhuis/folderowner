@@ -4,3 +4,4 @@ channels:
 dependencies:
   - pytest
   - mock
+  - pytest-mock
