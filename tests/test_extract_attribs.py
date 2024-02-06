@@ -2,19 +2,20 @@ import pytest
 import mock
 import os
 from pathlib import Path
-from convert2csv import extract_attribs, extract_attribs_cmd, MissingOwner, ExtractFunction, FolderIterator
+from convert2csv import (extract_attribs, extract_attribs_cmd,
+                         MissingOwner, ExtractFunction, FolderIterator)
 
 login_user = '\\'.join(
     [os.environ.get('userdomain'), os.environ.get('username')])
 
 # CMD strings
-NAME_NO_SPACE_CMD = f'2024-01-19  16:48        52,651,341 {login_user:23}         owner_rsdata.lst'
-NAME_OVERLAP_CMD = r'2022-05-07  06:20            12,288 NT SERVICE\TrustedInstawinhlp32.exe'
+NAME_NO_SPACE_CMD = f'2024-01-19  16:48        52,651,341 {login_user:23}         owner_rsdata.lst'  # noqa: E501
+NAME_OVERLAP_CMD = r'2022-05-07  06:20            12,288 NT SERVICE\TrustedInstawinhlp32.exe'  # noqa: E501
 
 # TCC strings
-NAME_NO_SPACE = f'21-01-2023  17:04         <DIR>    {login_user}  ExtrasCprorgramming'
-NAME_WITH_SPACES = rf'06-03-2015  16:53      28,847,799  {login_user}  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'
-ENTRY_NO_OWNER = r'06-03-2015  16:53      28,847,799  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'
+NAME_NO_SPACE = f'21-01-2023  17:04         <DIR>    {login_user}  ExtrasCprorgramming'  # noqa: E501
+NAME_WITH_SPACES = rf'06-03-2015  16:53      28,847,799  {login_user}  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'  # noqa: E501
+ENTRY_NO_OWNER = r'06-03-2015  16:53      28,847,799  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'  # noqa: E501
 
 TEST_DIR = Path(__file__).parent
 
@@ -27,7 +28,7 @@ def test_cmd_extract_attribs_owner_ok():
 
 def test_cmd_extract_attribs_overlap_owner():
     *_, owner, _ = extract_attribs_cmd(NAME_OVERLAP_CMD)
-    assert 'NT SERVICE\TrustedInsta' == owner
+    assert r'NT SERVICE\TrustedInsta' == owner
 
 
 def test_cmd_extract_attribs_overlap_name():
@@ -68,14 +69,14 @@ def test_extract_attribs_file_with_spaces_size_number():
 
 def test_extract_no_owner():
     with pytest.raises(MissingOwner):
-        all = extract_attribs(ENTRY_NO_OWNER)
+        _ = extract_attribs(ENTRY_NO_OWNER)
 
 
 # dynamic TCC or CMD
 @pytest.fixture
 def file_list():
     with open(TEST_DIR / 'test_file_list_tcc.lst') as fil:
-        lst = [l.strip() for l in fil.readlines()]
+        lst = [line.strip() for line in fil.readlines()]
 
     return lst
 
@@ -83,25 +84,25 @@ def file_list():
 @pytest.fixture
 def file_list_cmd():
     with open(TEST_DIR / 'test_file_list_cmd.lst') as fil:
-        lst = [l.strip() for l in fil.readlines()]
+        lst = [line.strip() for line in fil.readlines()]
 
     return lst
 
 
 @mock.patch('convert2csv.extract_attribs')
-def test_dynamic_extract(funmock, file_list):
+def test_dynamic_extract(funmock, file_list: list[str]):
     fi = FolderIterator(iter(file_list))
-    files = next(fi)    # initiates calls to extract_attribs
+    _ = next(fi)    # initiates calls to extract_attribs
     assert funmock.called
 
 
-def test_shell_type_tcc(file_list):
+def test_shell_type_tcc(file_list: list[str]):
     fi = FolderIterator(iter(file_list))
     shell = fi.detect_shell()
     assert shell == 'TCC'
 
 
-def test_shell_type_cmd(file_list_cmd):
+def test_shell_type_cmd(file_list_cmd: list[str]):
     fi = FolderIterator(iter(file_list_cmd))
     shell = fi.detect_shell()
     assert shell == 'CMD'
