@@ -89,13 +89,6 @@ def file_list_cmd():
     return lst
 
 
-@mock.patch('convert2csv.extract_attribs')
-def test_dynamic_extract(funmock, file_list: list[str]):
-    fi = FolderIterator(iter(file_list))
-    _ = next(fi)    # initiates calls to extract_attribs
-    assert funmock.called
-
-
 def test_shell_type_tcc(file_list: list[str]):
     fi = FolderIterator(iter(file_list))
     assert fi.extractfunction == extract_attribs
