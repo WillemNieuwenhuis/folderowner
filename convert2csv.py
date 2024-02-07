@@ -63,6 +63,7 @@ def get_valid_domain_from(name: str) -> str | None:
 
 
 ExtractFunction = Callable[[str], tuple[str]]
+FilterFunction = Callable[[list[tuple]], list[tuple]]
 
 
 def extract_attribs_cmd(lin: str) -> tuple[str]:
@@ -81,7 +82,7 @@ def extract_attribs_cmd(lin: str) -> tuple[str]:
     if owner.find('...') > 0:
         owner = r'BUILTIN\Administrators'    # Probably, user account cannot know
 
-    return (datestr, timestr, sizestr, owner, filename)
+    return datestr, timestr, sizestr, owner, filename
 
 
 def extract_attribs(lin: str) -> tuple[str]:
@@ -103,11 +104,26 @@ def extract_attribs(lin: str) -> tuple[str]:
         owner = r'BUILTIN\Administrators'    # Probably, user account cannot know
         filename = own_name[3:].strip()
 
-    return (datestr, timestr, sizestr, owner, filename)
+    return datestr, timestr, sizestr, owner, filename
 
 
 extract_functions: dict[str, ExtractFunction] = {
     'TCC': extract_attribs, 'CMD': extract_attribs_cmd}
+
+
+def filter_files_only(files: list[tuple]) -> list[tuple]:
+    return [f for f in files if len(
+        re.findall(REGEX_is_folder, f[2])) == 0]
+
+
+def filter_folder_only(files: list[tuple]) -> list[tuple]:
+    files = [f for f in files if len(
+        re.findall(REGEX_is_folder, f[2])) > 0]
+
+
+def filter_dot_folders(files: list[tuple]) -> list[tuple]:
+    files = [f for f in files if len(
+        re.findall(REGEX_dots, f[-2])) == 0]
 
 
 class FolderIterator:
@@ -126,12 +142,16 @@ class FolderIterator:
                  encoding: Optional[str] = 'utf-8',
                  ) -> None:
         self.source = source
-        self.files_only = files_only
         # files_only takes precedence over folders_only or skip_dot_folders,
         # they cannot all be true
-        self.skip_dot_folders = skip_dot_folders and not files_only
-        self.folders_only = folders_only and not files_only
         self.extractfunction = extract_functions[self._detect_shell()]
+        self.filters: list[FilterFunction] = []
+        if files_only:
+            self.filters.append[filter_files_only]
+        if folders_only and not files_only:
+            self.filters.append[filter_folder_only]
+        if skip_dot_folders and not files_only:
+            self.filters.append[filter_dot_folders]
 
     def __iter__(self):
         return self
@@ -139,15 +159,12 @@ class FolderIterator:
     def __next__(self):
         folder = self.find_folder_name()
         files = self.find_file_list(folder)
-        if self.files_only:
-            files = [f for f in files if len(
-                re.findall(REGEX_is_folder, f[2])) == 0]
-        if self.folders_only:
-            files = [f for f in files if len(
-                re.findall(REGEX_is_folder, f[2])) > 0]
-        if self.skip_dot_folders:
-            files = [f for f in files if len(
-                re.findall(REGEX_dots, f[-2])) == 0]
+        # files contains a list of tuples:
+        #  (datestr, timestr, sizestr or DIR, owner, filename, containing folder)
+        # Apply filters if any
+        for func in self.filters:
+            files = func(files)
+
         return (folder, files)
 
     def _detect_shell(self) -> str:
@@ -166,6 +183,9 @@ class FolderIterator:
                 return 'CMD'
             if len(re.findall(REGEX_VOLUME_SERIAL_TCC, lin)) > 0:
                 return 'TCC'
+
+            if not lin:
+                break
 
         return 'TCC'
 
@@ -232,7 +252,7 @@ def read_dirlist(fn: str,
                  folders_only: bool,
                  encoding: Optional[str],
                  ) -> pd.DataFrame:
-    ''' The function parses directory output from a console (Windows)
+    """ The function parses directory output from a console (Windows)
         The listing contains information about the owner of each file/folder
         A typical entry looks like:
             `2023-10-13  12:53             643  AD\nieuwenhuis  readme.txt`
@@ -245,7 +265,7 @@ def read_dirlist(fn: str,
             `         297,678,077 bytes in 41 files and 2 dirs`, and
             `    Total for:  \\dikke.itc.utwente.nl\RS_Data\Willem\darvish\Planet\`
             `         595,396,857 bytes in 45 files and 5 dirs    595,488,768 bytes allocated`
-    '''   # noqa: E501, W605
+    """   # noqa: E501, W605
     # loop until end
     #   find folder name
     #   find file list
