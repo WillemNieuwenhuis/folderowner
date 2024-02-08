@@ -1,5 +1,5 @@
 import pytest
-from convert2csv import filter_dot_folders, filter_files_only, filter_folder_only
+from filter_functions import filter_dot_folders, filter_files_only, filter_folder_only
 
 FILES_TO_FILTER = [
     ('2023-11-01', '11:32', '<DIR>', 'NT AUTHORITY\SYSTEM', '.', r'c:\\'),

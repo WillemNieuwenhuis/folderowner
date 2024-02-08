@@ -1,10 +1,14 @@
 import argparse
 import os
 from pathlib import Path
+import pandas as pd
 import re
 from typing import Optional, Callable, Iterable
 
-import pandas as pd
+from filter_functions import (FilterFunction,
+                              filter_files_only,
+                              filter_folder_only,
+                              filter_dot_folders)
 
 # For parsing
 REGEX_VOLUME_SERIAL_CMD = 'Volume Serial'
@@ -12,10 +16,6 @@ REGEX_VOLUME_SERIAL_TCC = ' Serial number'
 REGEX_directory_line = 'Directory of'
 REGEX_folder_pattern = r'[ \*]'
 REGEX_bytes_in_folder = ' bytes in '
-
-# For filtering
-REGEX_dots = r'[.]{1,2}$'
-REGEX_is_folder = r'<DIR>'
 
 # possible system domains
 NTAUTH_DOMAIN = 'NT AUTHORITY'
@@ -63,7 +63,6 @@ def get_valid_domain_from(name: str) -> str | None:
 
 
 ExtractFunction = Callable[[str], tuple[str]]
-FilterFunction = Callable[[list[tuple]], list[tuple]]
 
 
 def extract_attribs_cmd(lin: str) -> tuple[str]:
@@ -109,21 +108,6 @@ def extract_attribs(lin: str) -> tuple[str]:
 
 extract_functions: dict[str, ExtractFunction] = {
     'TCC': extract_attribs, 'CMD': extract_attribs_cmd}
-
-
-def filter_files_only(files: list[tuple]) -> list[tuple]:
-    return [f for f in files if len(
-        re.findall(REGEX_is_folder, f[2])) == 0]
-
-
-def filter_folder_only(files: list[tuple]) -> list[tuple]:
-    return [f for f in files if len(
-        re.findall(REGEX_is_folder, f[2])) > 0]
-
-
-def filter_dot_folders(files: list[tuple]) -> list[tuple]:
-    return [f for f in files if len(
-        re.findall(REGEX_dots, f[-2])) == 0]
 
 
 class FolderIterator:
