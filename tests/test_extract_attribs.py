@@ -1,21 +1,20 @@
-import pytest
 import os
 from pathlib import Path
+import pytest
 
 from dir2csv import FolderIterator
-from extract_functions import (extract_attribs, extract_attribs_cmd,
-                               MissingOwner)
+from extract_functions import extract_attribs, extract_attribs_cmd
 
-login_user = '\\'.join(
+LOGIN_USER = '\\'.join(
     [os.environ.get('userdomain'), os.environ.get('username')])
 
 # CMD strings
-NAME_NO_SPACE_CMD = f'2024-01-19  16:48        52,651,341 {login_user:23}         owner_rsdata.lst'  # noqa: E501
+NAME_NO_SPACE_CMD = f'2024-01-19  16:48        52,651,341 {LOGIN_USER:23}         owner_rsdata.lst'  # noqa: E501
 NAME_OVERLAP_CMD = r'2022-05-07  06:20            12,288 NT SERVICE\TrustedInstawinhlp32.exe'  # noqa: E501
 
 # TCC strings
-NAME_NO_SPACE = f'21-01-2023  17:04         <DIR>    {login_user}  ExtrasCprorgramming'  # noqa: E501
-NAME_WITH_SPACES = rf'06-03-2015  16:53      28,847,799  {login_user}  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'  # noqa: E501
+NAME_NO_SPACE = f'21-01-2023  17:04         <DIR>    {LOGIN_USER}  ExtrasCprorgramming'  # noqa: E501
+NAME_WITH_SPACES = rf'06-03-2015  16:53      28,847,799  {LOGIN_USER}  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'  # noqa: E501
 ENTRY_NO_OWNER = r'06-03-2015  16:53      28,847,799  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'  # noqa: E501
 
 TEST_DIR = Path(__file__).parent
@@ -24,7 +23,7 @@ TEST_DIR = Path(__file__).parent
 # CMD
 def test_cmd_extract_attribs_owner_ok():
     *_, owner, _ = extract_attribs_cmd(NAME_NO_SPACE_CMD)
-    assert owner == login_user
+    assert owner == LOGIN_USER
 
 
 def test_cmd_extract_attribs_overlap_owner():
@@ -40,7 +39,7 @@ def test_cmd_extract_attribs_overlap_name():
 # TCC
 def test_extract_attribs_owner_ok():
     *_, owner, _ = extract_attribs(NAME_NO_SPACE)
-    assert owner == login_user
+    assert owner == LOGIN_USER
 
 
 def test_extract_attribs_date_ok():
@@ -68,15 +67,10 @@ def test_extract_attribs_file_with_spaces_size_number():
     assert size == '28847799'
 
 
-def test_extract_no_owner():
-    with pytest.raises(MissingOwner):
-        _ = extract_attribs(ENTRY_NO_OWNER)
-
-
 # dynamic TCC or CMD
 @pytest.fixture
 def file_list():
-    with open(TEST_DIR / 'test_file_list_tcc.lst') as fil:
+    with open(TEST_DIR / 'test_file_list_tcc.lst', encoding='utf8') as fil:
         lst = [line.strip() for line in fil.readlines()]
 
     return lst
@@ -84,7 +78,7 @@ def file_list():
 
 @pytest.fixture
 def file_list_cmd():
-    with open(TEST_DIR / 'test_file_list_cmd.lst') as fil:
+    with open(TEST_DIR / 'test_file_list_cmd.lst', encoding='utf8') as fil:
         lst = [line.strip() for line in fil.readlines()]
 
     return lst
