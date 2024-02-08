@@ -9,7 +9,7 @@ REGEX_VOLUME_SERIAL_CMD = 'Volume Serial'
 REGEX_VOLUME_SERIAL_TCC = ' Serial number'
 REGEX_directory_line = 'Directory of'
 REGEX_folder_pattern = r'[ \*]'
-REGEX_bytes_in_folder = ' bytes in '
+REGEX_bytes_in_folder = '\d+ bytes'
 
 
 class FolderIterator(Iterable):
@@ -100,7 +100,8 @@ class FolderIterator(Iterable):
 
         # at first line of list
         # collect lines until first summary line
-        # (fe: `297,678,077 bytes in 41 files and 2 dirs`)
+        # (fe: `297,678,077 bytes in 41 files and 2 dirs` for TCC
+        #    )
         folder_list = [(*self.extractfunction(lin), folder)]     # add the first
         while True:
             lin = next(self.source)
