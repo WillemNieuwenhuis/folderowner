@@ -5,6 +5,7 @@ import pandas as pd
 import re
 from typing import Optional, Callable, Iterable
 
+from extract_functions import get_extract_function
 from filter_functions import (FilterFunction,
                               filter_files_only,
                               filter_folder_only,
@@ -16,19 +17,6 @@ REGEX_VOLUME_SERIAL_TCC = ' Serial number'
 REGEX_directory_line = 'Directory of'
 REGEX_folder_pattern = r'[ \*]'
 REGEX_bytes_in_folder = ' bytes in '
-
-# possible system domains
-NTAUTH_DOMAIN = 'NT AUTHORITY'
-BUILTIN_DOMAIN = 'BUILTIN'
-NTSERV_DOMAIN = 'NT SERVICE'
-LOCAL_DOMAIN = os.environ.get('userdomain')
-SPECIAL_DOMAIN = '...'
-all_domains = [NTAUTH_DOMAIN, BUILTIN_DOMAIN,
-               NTSERV_DOMAIN, LOCAL_DOMAIN, SPECIAL_DOMAIN]
-
-
-class MissingOwner(Exception):
-    pass
 
 
 class FileIterator(Iterable):
@@ -54,62 +42,6 @@ class FileIterator(Iterable):
         self.fil.close()
 
 
-def get_valid_domain_from(name: str) -> str | None:
-    checked = [dom for dom in all_domains if name.find(dom) >= 0]
-    if checked:
-        return checked[0]
-
-    return None
-
-
-ExtractFunction = Callable[[str], tuple[str]]
-
-
-def extract_attribs_cmd(lin: str) -> tuple[str]:
-    '''extract attributes at fixed starting positions in the line.
-       expects output from console from CMD.exe
-    '''
-    dom = get_valid_domain_from(lin)
-    if not dom:
-        raise MissingOwner(
-            'Could not find valid owner field, did you use "/Q"')
-    datestr = lin[0:12].strip()
-    timestr = lin[12:17].strip()
-    sizestr = lin[17:36].strip().replace(',', '')
-    owner = lin[36:59].strip()
-    filename = lin[59:].strip()
-    if owner.find('...') > 0:
-        owner = r'BUILTIN\Administrators'    # Probably, user account cannot know
-
-    return datestr, timestr, sizestr, owner, filename
-
-
-def extract_attribs(lin: str) -> tuple[str]:
-    '''extract attributes at fixed starting positions in the line
-    '''
-    dom = get_valid_domain_from(lin)
-    if not dom:
-        raise MissingOwner(
-            'Could not find valid owner field, did you use "/Q"')
-    datestr = lin[0:12].strip()
-    timestr = lin[12:17].strip()
-    sizestr = lin[17:35].strip().replace(',', '')
-    own_name = lin[35:]
-    if own_name.find('...') == -1:
-        pat = rf'({dom}\\.*)\b\s{{2}}(.*)'
-        res = re.search(pat, lin).groups()
-        owner, filename = res
-    else:
-        owner = r'BUILTIN\Administrators'    # Probably, user account cannot know
-        filename = own_name[3:].strip()
-
-    return datestr, timestr, sizestr, owner, filename
-
-
-extract_functions: dict[str, ExtractFunction] = {
-    'TCC': extract_attribs, 'CMD': extract_attribs_cmd}
-
-
 class FolderIterator:
     ''' Extract all listed files from a dump of the command:
          `dir <root folder> /qs`
@@ -128,7 +60,7 @@ class FolderIterator:
         self.source = source
         # files_only takes precedence over folders_only or skip_dot_folders,
         # they cannot all be true
-        self.extractfunction = extract_functions[self._detect_shell()]
+        self.extractfunction = get_extract_function(self._detect_shell())
         self.filters: list[FilterFunction] = []
         if files_only:
             self.filters.append[filter_files_only]
