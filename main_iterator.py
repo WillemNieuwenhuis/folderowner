@@ -8,7 +8,7 @@ from filter_functions import exec_filter_chain
 REGEX_VOLUME_SERIAL_CMD = 'Volume Serial'
 REGEX_VOLUME_SERIAL_TCC = ' Serial number'
 REGEX_directory_line = 'Directory of'
-REGEX_folder_pattern = r'[ \*]'
+REGEX_folder_pattern = r'[ *]'
 REGEX_bytes_in_folder = '\d+ bytes'
 
 
@@ -80,13 +80,16 @@ class FolderIterator(Iterable):
             if len(re.findall(REGEX_directory_line, lin)) > 0:
                 break
 
-        # lin looks like:
+        # lin may look like:
+        # ` Directory of  e:\*`
+        # ` Directory of  e:\`
         # ` Directory of  \\dikke.itc.utwente.nl\RS_Data\Willem\darvish\Planet\*`
+        # ` Directory of  \\dikke.itc.utwente.nl\RS_Data\Willem\darvish\Planet\`
         parts = re.split(REGEX_folder_pattern, lin.strip())
         if len(parts) < 3:
             raise StopIteration
 
-        return ' '.join(parts[3:-1])
+        return ' '.join(parts[2:]).strip()
 
     def find_file_list(self, folder: str) -> list[str]:
         ''' Skip empty lines and read a list of file names
