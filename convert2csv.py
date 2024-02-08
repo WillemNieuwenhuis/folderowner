@@ -117,12 +117,12 @@ def filter_files_only(files: list[tuple]) -> list[tuple]:
 
 
 def filter_folder_only(files: list[tuple]) -> list[tuple]:
-    files = [f for f in files if len(
+    return [f for f in files if len(
         re.findall(REGEX_is_folder, f[2])) > 0]
 
 
 def filter_dot_folders(files: list[tuple]) -> list[tuple]:
-    files = [f for f in files if len(
+    return [f for f in files if len(
         re.findall(REGEX_dots, f[-2])) == 0]
 
 
