@@ -6,6 +6,7 @@ from typing import Callable
 # possible system domains
 NTAUTH_DOMAIN = 'NT AUTHORITY'
 BUILTIN_DOMAIN = 'BUILTIN'
+BUILTIN_ADMIN = 'BUILTIN\Administrators'
 NTSERV_DOMAIN = 'NT SERVICE'
 LOCAL_DOMAIN = os.environ.get('userdomain')
 SPECIAL_DOMAIN = '...'
@@ -42,7 +43,7 @@ def extract_attribs_cmd(lin: str) -> tuple[str]:
     owner = lin[36:59].strip()
     filename = lin[59:].strip()
     if owner.find('...') > 0:
-        owner = r'BUILTIN\Administrators'    # Probably, user account cannot know
+        owner = BUILTIN_ADMIN    # Probably, user account cannot know
 
     return datestr, timestr, sizestr, owner, filename
 
@@ -63,7 +64,7 @@ def extract_attribs(lin: str) -> tuple[str]:
         res = re.search(pat, lin).groups()
         owner, filename = res
     else:
-        owner = r'BUILTIN\Administrators'    # Probably, user account cannot know
+        owner = BUILTIN_ADMIN    # Probably, user account cannot know
         filename = own_name[3:].strip()
 
     return datestr, timestr, sizestr, owner, filename
