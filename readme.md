@@ -15,10 +15,13 @@ Or for a recursive listing
 > [!Note]
 > Depending on the shell being used the formatting of the list can differ. TCC and CMD are now supported
 
-It is assumed that the output of the command is captured in a file. This files can 
+It is assumed that the output of the command is captured in a file. This file can 
 then be passed to the application.
 
 > [!Note]
+> To avoid language error messages you can change the default codepage in the console (CP437-Ansi) to UTF-8 (CP65001) with the command: `chcp 65001`.
+
+> [!Warning]
 > Retrieving the owner information is a slow operation and for folders with a large number of files this can take considerable time.
 
 
@@ -46,5 +49,5 @@ options:
   -d, --dirs_only       Only extract folders into the output table
   -f, --files_only      Only extract files into the output table
   -e ENCODING, --encoding ENCODING
-                        Specify the text encoding of the input file
+                        Specify the text encoding of the input file (default=UTF-8)
 ```
