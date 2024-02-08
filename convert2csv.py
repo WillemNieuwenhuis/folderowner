@@ -6,6 +6,7 @@ from typing import Optional, Iterable
 
 from cli import define_cli
 from extract_functions import get_extract_function
+from file_iterator import FileIterator
 from filter_functions import exec_filter_chain
 
 # For parsing
@@ -14,29 +15,6 @@ REGEX_VOLUME_SERIAL_TCC = ' Serial number'
 REGEX_directory_line = 'Directory of'
 REGEX_folder_pattern = r'[ \*]'
 REGEX_bytes_in_folder = ' bytes in '
-
-
-class FileIterator(Iterable):
-    ''' Turn file read generator into an iterator
-        This allows to handle the special end of file case (empty line)
-        A regular empty line contains a single '\n', which is stripped off
-    '''
-
-    def __init__(self, filename: str) -> None:
-        self.fil = open(filename)
-
-    def __next__(self) -> str:
-        line = self.fil.readline()
-        if line:
-            return line.strip()
-
-        raise StopIteration
-
-    def __iter__(self):
-        return self
-
-    def __del__(self) -> None:
-        self.fil.close()
 
 
 class FolderIterator:
