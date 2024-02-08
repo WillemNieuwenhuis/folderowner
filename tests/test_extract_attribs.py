@@ -2,7 +2,7 @@ import pytest
 import os
 from pathlib import Path
 
-from convert2csv import FolderIterator
+from dir2csv import FolderIterator
 from extract_functions import (extract_attribs, extract_attribs_cmd,
                                MissingOwner)
 
