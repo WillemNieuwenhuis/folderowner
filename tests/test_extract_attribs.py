@@ -4,7 +4,7 @@ from pathlib import Path
 
 from convert2csv import FolderIterator
 from extract_functions import (extract_attribs, extract_attribs_cmd,
-                               MissingOwner, ExtractFunction)
+                               MissingOwner)
 
 login_user = '\\'.join(
     [os.environ.get('userdomain'), os.environ.get('username')])
