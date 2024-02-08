@@ -38,7 +38,7 @@ def extract_attribs(lin: str) -> tuple[str]:
         owner = BUILTIN_ADMIN    # Probably, user account cannot know
         filename = own_name[3:].strip()
 
-    if pos := own_name.find('\\') > 0:
+    if (pos := own_name.find('\\')) > 0:
         # there is owner info
         dom = own_name[0:pos]
         parts = own_name[pos+1:].split()
