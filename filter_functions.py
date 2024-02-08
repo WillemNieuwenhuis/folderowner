@@ -25,9 +25,9 @@ def filter_dot_folders(files: list[tuple]) -> list[tuple]:
 
 
 def exec_filter_chain(files: list[tuple],
-                      exclude_parents: bool,
-                      files_only: bool,
-                      folders_only: bool) -> list[FilterFunction]:
+                      exclude_parents: bool = False,
+                      files_only: bool = False,
+                      folders_only: bool = False) -> list[FilterFunction]:
     if files_only:
         files = filter_files_only(files)
     if folders_only and not files_only:
