@@ -67,7 +67,7 @@ def read_dirlist(fn: str,
 
 
 if __name__ == '__main__':
-    args = define_cli()
+    args = define_cli().parse_args()
 
     dirdump_file = Path(args.dirdump)
     if not dirdump_file.exists:
