@@ -3,13 +3,10 @@ import os
 from pathlib import Path
 import pandas as pd
 import re
-from typing import Optional, Callable, Iterable
+from typing import Optional, Iterable
 
 from extract_functions import get_extract_function
-from filter_functions import (FilterFunction,
-                              filter_files_only,
-                              filter_folder_only,
-                              filter_dot_folders)
+from filter_functions import exec_filter_chain
 
 # For parsing
 REGEX_VOLUME_SERIAL_CMD = 'Volume Serial'
@@ -61,13 +58,9 @@ class FolderIterator:
         # files_only takes precedence over folders_only or skip_dot_folders,
         # they cannot all be true
         self.extractfunction = get_extract_function(self._detect_shell())
-        self.filters: list[FilterFunction] = []
-        if files_only:
-            self.filters.append[filter_files_only]
-        if folders_only and not files_only:
-            self.filters.append[filter_folder_only]
-        if skip_dot_folders and not files_only:
-            self.filters.append[filter_dot_folders]
+        self.files_only = files_only
+        self.folders_only = folders_only and not files_only
+        self.exclude_parents = skip_dot_folders and not files_only
 
     def __iter__(self):
         return self
@@ -78,8 +71,8 @@ class FolderIterator:
         # files contains a list of tuples:
         #  (datestr, timestr, sizestr or DIR, owner, filename, containing folder)
         # Apply filters if any
-        for func in self.filters:
-            files = func(files)
+        files = exec_filter_chain(files, self.exclude_parents,
+                                  self.files_only, self.folders_only)
 
         return (folder, files)
 
