@@ -9,7 +9,7 @@ REGEX_VOLUME_SERIAL_CMD = 'Volume Serial'
 REGEX_VOLUME_SERIAL_TCC = ' Serial number'
 REGEX_directory_line = 'Directory of'
 REGEX_folder_pattern = r'[ *]'
-REGEX_bytes_in_folder = '\d+ bytes'
+REGEX_bytes_in_folder = r'\d+ bytes'
 
 
 class FolderIterator(Iterable):
