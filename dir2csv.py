@@ -1,7 +1,9 @@
 import os
 from pathlib import Path
-import pandas as pd
+import sys
 from typing import Optional
+
+import pandas as pd
 
 from cli import define_cli
 from file_iterator import FileIterator
@@ -30,7 +32,7 @@ def read_dirlist(fn: str,
                  folders_only: bool,
                  encoding: Optional[str],
                  ) -> pd.DataFrame:
-    """ The function parses directory output from a console (Windows)
+    r""" The function parses directory output from a console (Windows)
         The listing contains information about the owner of each file/folder
         A typical entry looks like:
             `2023-10-13  12:53             643  AD\nieuwenhuis  readme.txt`
@@ -72,12 +74,12 @@ if __name__ == '__main__':
     dirdump_file = Path(args.dirdump)
     if not dirdump_file.exists:
         print(f'File {args.dirdump} does not exist')
-        exit()
+        sys.exit(1)
 
     outtable = Path(args.output_table)
     if outtable.exists() and (not args.overwrite):
         print(f'File {args.output_table} already exists')
-        exit()
+        sys.exit(2)
 
     if outtable.exists() and args.overwrite:
         os.remove(outtable)
