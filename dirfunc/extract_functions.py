@@ -37,6 +37,7 @@ def extract_attribs(lin: str) -> tuple[str]:
         # special case of resticted access to file info
         owner = BUILTIN_ADMIN    # Probably, user account cannot know
         filename = own_name[3:].strip()
+        return datestr, timestr, sizestr, owner, filename
 
     if (pos := own_name.find('\\')) > 0:
         # there is owner info

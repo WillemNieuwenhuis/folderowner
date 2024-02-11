@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from dirfunc.main_iterator import FolderIterator
-from dirfunc.extract_functions import extract_attribs, extract_attribs_cmd
+from dirfunc.extract_functions import extract_attribs, extract_attribs_cmd, BUILTIN_ADMIN
 
 LOGIN_USER = '\\'.join(
     [os.environ.get('userdomain'), os.environ.get('username')])
@@ -16,6 +16,7 @@ NAME_OVERLAP_CMD = r'2022-05-07  06:20            12,288 NT SERVICE\TrustedInsta
 NAME_NO_SPACE = f'21-01-2023  17:04         <DIR>    {LOGIN_USER}  ExtrasCprorgramming'  # noqa: E501
 NAME_WITH_SPACES = rf'06-03-2015  16:53      28,847,799  {LOGIN_USER}  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'  # noqa: E501
 ENTRY_NO_OWNER = r'06-03-2015  16:53      28,847,799  The Art of Electronics 2nd ed - Horowitz & Hill.pdf'  # noqa: E501
+ENTRY_3DOTS = '2023-12-15   9:50          12,288  ...                          DumpStack.log'
 
 TEST_DIR = Path(__file__).parent
 
@@ -65,6 +66,16 @@ def test_extract_attribs_file_with_spaces():
 def test_extract_attribs_file_with_spaces_size_number():
     _, _, size, *_ = extract_attribs(NAME_WITH_SPACES)
     assert size == '28847799'
+
+
+def test_extract_attribs_3dots_owner():
+    _, _, _, owner, *_ = extract_attribs(ENTRY_3DOTS)
+    assert owner == BUILTIN_ADMIN
+
+
+def test_extract_attribs_3dots_filename():
+    _, _, _, owner, filename, *_ = extract_attribs(ENTRY_3DOTS)
+    assert filename == 'DumpStack.log'
 
 
 # dynamic TCC or CMD
