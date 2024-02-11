@@ -1,4 +1,4 @@
-from filter_functions import (
+from dirfunc.filter_functions import (
     filter_dot_folders, filter_files_only, filter_folder_only, exec_filter_chain)
 
 FILES_TO_FILTER = [

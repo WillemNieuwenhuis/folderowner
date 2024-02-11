@@ -1,8 +1,8 @@
 import re
 from typing import Iterable, Optional
 
-from extract_functions import get_extract_function
-from filter_functions import exec_filter_chain
+from dirfunc.extract_functions import get_extract_function
+from dirfunc.filter_functions import exec_filter_chain
 
 # For parsing
 REGEX_VOLUME_SERIAL_CMD = 'Volume Serial'

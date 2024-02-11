@@ -5,9 +5,9 @@ from typing import Optional
 
 import pandas as pd
 
-from cli import define_cli
-from file_iterator import FileIterator
-from main_iterator import FolderIterator
+from dirfunc.cli import define_cli
+from dirfunc.file_iterator import FileIterator
+from dirfunc.main_iterator import FolderIterator
 
 
 def split_dir_from_size(df: pd.DataFrame) -> pd.DataFrame:

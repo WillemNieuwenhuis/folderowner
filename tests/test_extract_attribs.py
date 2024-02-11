@@ -2,8 +2,8 @@ import os
 from pathlib import Path
 import pytest
 
-from dir2csv import FolderIterator
-from extract_functions import extract_attribs, extract_attribs_cmd
+from dirfunc.main_iterator import FolderIterator
+from dirfunc.extract_functions import extract_attribs, extract_attribs_cmd
 
 LOGIN_USER = '\\'.join(
     [os.environ.get('userdomain'), os.environ.get('username')])
